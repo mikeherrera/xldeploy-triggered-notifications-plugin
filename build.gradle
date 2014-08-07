@@ -1,0 +1,31 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+  from("./") {
+    include 'libs/**'
+  }
+
+  manifest  {
+    attributes "Class-Path" : "libs/retrofit-1.6.1.jar libs/gson-2.2.4.jar"
+  }
+  
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'org.slf4j:slf4j-api:1.7.5'
+    compile 'com.squareup.retrofit:retrofit:1.6.1'
+    compile 'org.freemarker:freemarker:2.3.14'
+    
+    testCompile "junit:junit:4.11"
+
+    runtime fileTree(dir: 'libs', include: ['*.jar'])
+    runtime 'com.squareup.retrofit:retrofit:1.6.1'
+    runtime 'com.google.code.gson:gson:2+'
+    runtime 'org.freemarker:freemarker:2.3.14'
+}
