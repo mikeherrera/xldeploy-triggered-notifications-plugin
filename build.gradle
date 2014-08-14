@@ -10,10 +10,11 @@ jar {
     include 'libs/**'
   }
 
-  manifest  {
-    attributes "Class-Path" : "libs/retrofit-1.6.1.jar libs/gson-2.2.4.jar"
+  from {
+    configurations.runtime.collect {
+     it.isDirectory() ? it : zipTree(it)
+    }
   }
-  
 }
 
 dependencies {
@@ -24,8 +25,7 @@ dependencies {
     
     testCompile "junit:junit:4.11"
 
-    runtime fileTree(dir: 'libs', include: ['*.jar'])
+    //runtime fileTree(dir: 'libs', include: ['*.jar'])
     runtime 'com.squareup.retrofit:retrofit:1.6.1'
     runtime 'com.google.code.gson:gson:2+'
-    runtime 'org.freemarker:freemarker:2.3.14'
 }
