@@ -1,14 +1,12 @@
 package ext.deployit.michaelherrera.plugin.hipchat.notification;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import retrofit.Callback;
+import retrofit.ErrorHandler;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -17,15 +15,11 @@ import retrofit.client.Response;
 import com.xebialabs.deployit.plugin.api.udm.Metadata;
 import com.xebialabs.deployit.plugin.api.udm.Property;
 import com.xebialabs.deployit.plugin.api.udm.base.BaseConfigurationItem;
-import com.xebialabs.deployit.plugin.generic.freemarker.ConfigurationHolder;
 import com.xebialabs.deployit.plugin.trigger.Action;
 
-import ext.deployit.michaelherrera.plugin.hipchat.service.HipChatMessage;
 import ext.deployit.michaelherrera.plugin.hipchat.service.HipChatMessageStatus;
 import ext.deployit.michaelherrera.plugin.hipchat.service.HipChatService;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
+import ext.deployit.michaelherrera.plugin.util.TemplateParser;
 
 @SuppressWarnings("serial")
 @Metadata(root = Metadata.ConfigurationItemRoot.CONFIGURATION, description = "HipChat Notification configuration.")
@@ -33,7 +27,6 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 	
 	private static final Logger logger = LoggerFactory.getLogger(HipChatNotification.class);
 	private static final String MESSAGE_FROM = "XL Deploy";
-	private static final String MESSAGE_BG_COLOR = "yellow";
 	private static final String MESSAGE_FORMAT = "text";
 	
 	@Property(defaultValue = "https://api.hipchat.com", description = "The host HipChat API request.")
@@ -42,8 +35,7 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 	@Property(description = "The auth token used for the HipChat API request.")
     private String authToken;
 	
-	//TODO: Remove defaultValue for roomId, only using it for development speed...
-	@Property(defaultValue = "128968", description = "The room id for the HipChat API request.")
+	@Property(description = "The room id for the HipChat API request.")
     private String roomId;
 	
 	@Property(description = "The message to send to the HipChat room via API request.", size = Property.Size.LARGE)
@@ -57,10 +49,19 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 	
 	public HipChatNotification()	{}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void execute(Map context) {
-		String notificationMessage = parseTemplatedMessage(message, context);
+		String notificationMessage = TemplateParser.parseTemplatedMessage(message, context);
 		logger.info("notificationMessage: " + notificationMessage);
+		
+		class MyErrorHandler implements ErrorHandler {
+			  @Override public Throwable handleError(RetrofitError cause) {
+			    Response r = cause.getResponse();
+			    logger.error(r.getReason());
+			    return cause;
+			  }
+			}
 		
 		RequestInterceptor requestInterceptor = new RequestInterceptor() {
 			  @Override
@@ -76,6 +77,7 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 			.setLogLevel(RestAdapter.LogLevel.FULL)
 			.setEndpoint(hipChatApiHost)
 			.setRequestInterceptor(requestInterceptor)
+			.setErrorHandler(new MyErrorHandler())
 			.build();
 		
 		HipChatService hipChatService = restAdapter.create(HipChatService.class);
@@ -92,22 +94,6 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 	
 	public String getHipChatApiHost()	{
 		return hipChatApiHost;
-	}
-	
-	private String parseTemplatedMessage(String templatedMessage, Map templateVars)	{
-		Configuration cfg = ConfigurationHolder.getConfiguration();
-        Template loadedTemplate;
-        StringWriter stringWriter = null;
-        
-        try {
-			loadedTemplate = new Template("name", new StringReader(templatedMessage), cfg);
-			stringWriter = new StringWriter();
-			loadedTemplate.process(templateVars, stringWriter);
-		} catch (TemplateException | IOException e) {
-			logger.error("Exception: " + e.getMessage());
-		}
-        
-        return stringWriter.toString();
 	}
 	
 	private Callback<HipChatMessageStatus> sendMessageCallback = new Callback<HipChatMessageStatus>()	{

@@ -1,8 +1,5 @@
 package ext.deployit.michaelherrera.plugin.newrelic.notification;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -14,14 +11,11 @@ import retrofit.RestAdapter;
 import com.xebialabs.deployit.plugin.api.udm.Metadata;
 import com.xebialabs.deployit.plugin.api.udm.Property;
 import com.xebialabs.deployit.plugin.api.udm.base.BaseConfigurationItem;
-import com.xebialabs.deployit.plugin.generic.freemarker.ConfigurationHolder;
 import com.xebialabs.deployit.plugin.trigger.Action;
 
 import ext.deployit.michaelherrera.plugin.newrelic.service.GsonNewRelicNoticeWrapper;
 import ext.deployit.michaelherrera.plugin.newrelic.service.NewRelicService;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
+import ext.deployit.michaelherrera.plugin.util.TemplateParser;
 
 @SuppressWarnings("serial")
 @Metadata(root = Metadata.ConfigurationItemRoot.CONFIGURATION, description = "NewRelic Notification configuration.")
@@ -44,9 +38,10 @@ public class NewRelicNotification extends BaseConfigurationItem implements Actio
 	
 	public NewRelicNotification()	{}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void execute(Map context) {
-		String notificationMessage = parseTemplatedMessage(description, context);
+		String notificationMessage = TemplateParser.parseTemplatedMessage(description, context);
 		logger.info("notificationMessage: " + notificationMessage);
 		
 		GsonNewRelicNoticeWrapper newRelicNotice = new GsonNewRelicNoticeWrapper(app_name, MESSAGE_FROM, description);
@@ -66,21 +61,5 @@ public class NewRelicNotification extends BaseConfigurationItem implements Actio
 		
 		NewRelicService newRelicService = restAdapter.create(NewRelicService.class);
 		newRelicService.sendNewRelicNotice(newRelicNotice);
-	}
-	
-	private String parseTemplatedMessage(String templatedMessage, Map templateVars)	{
-		Configuration cfg = ConfigurationHolder.getConfiguration();
-        Template loadedTemplate;
-        StringWriter stringWriter = null;
-        
-        try {
-			loadedTemplate = new Template("name", new StringReader(templatedMessage), cfg);
-			stringWriter = new StringWriter();
-			loadedTemplate.process(templateVars, stringWriter);
-		} catch (TemplateException | IOException e) {
-			logger.error("Exception: " + e.getMessage());
-		}
-        
-        return stringWriter.toString();
 	}
 }
