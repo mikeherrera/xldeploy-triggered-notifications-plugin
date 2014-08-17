@@ -6,6 +6,6 @@ import retrofit.http.POST;
 public interface NewRelicService {
 	
 	@POST("/deployments.xml")
-	void sendNewRelicNotice(@Body GsonNewRelicNoticeWrapper newRelicNotice);
+	String sendNewRelicNotice(@Body Deployment newRelicNotice);
 	
 }

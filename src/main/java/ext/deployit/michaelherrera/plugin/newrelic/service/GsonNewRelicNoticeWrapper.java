@@ -2,13 +2,13 @@ package ext.deployit.michaelherrera.plugin.newrelic.service;
 
 public class GsonNewRelicNoticeWrapper {
 	
-	private NewRelicNotice deployment;
+	private Deployment deployment;
 	
 	public GsonNewRelicNoticeWrapper(String app_name, String user, String description)	{
-		this.deployment = new NewRelicNotice(app_name, user, description);
+		this.deployment = new Deployment(app_name, user, description);
 	}
 	
-	public NewRelicNotice getDeployment()	{
+	public Deployment getDeployment()	{
 		return this.deployment;
 	}
 

@@ -61,7 +61,7 @@ public class HipChatNotification extends BaseConfigurationItem implements Action
 			    logger.error(r.getReason());
 			    return cause;
 			  }
-			}
+		}
 		
 		RequestInterceptor requestInterceptor = new RequestInterceptor() {
 			  @Override

@@ -7,13 +7,14 @@ import org.slf4j.LoggerFactory;
 
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.converter.SimpleXMLConverter;
 
 import com.xebialabs.deployit.plugin.api.udm.Metadata;
 import com.xebialabs.deployit.plugin.api.udm.Property;
 import com.xebialabs.deployit.plugin.api.udm.base.BaseConfigurationItem;
 import com.xebialabs.deployit.plugin.trigger.Action;
 
-import ext.deployit.michaelherrera.plugin.newrelic.service.GsonNewRelicNoticeWrapper;
+import ext.deployit.michaelherrera.plugin.newrelic.service.Deployment;
 import ext.deployit.michaelherrera.plugin.newrelic.service.NewRelicService;
 import ext.deployit.michaelherrera.plugin.util.TemplateParser;
 
@@ -44,7 +45,7 @@ public class NewRelicNotification extends BaseConfigurationItem implements Actio
 		String notificationMessage = TemplateParser.parseTemplatedMessage(description, context);
 		logger.info("notificationMessage: " + notificationMessage);
 		
-		GsonNewRelicNoticeWrapper newRelicNotice = new GsonNewRelicNoticeWrapper(app_name, MESSAGE_FROM, description);
+		Deployment newRelicNotice = new Deployment(app_name, MESSAGE_FROM, description);
 		
 		RequestInterceptor requestInterceptor = new RequestInterceptor() {
 			  @Override
@@ -56,6 +57,7 @@ public class NewRelicNotification extends BaseConfigurationItem implements Actio
 		RestAdapter restAdapter = new RestAdapter.Builder()
 			.setLogLevel(RestAdapter.LogLevel.FULL)
 			.setEndpoint(newRelicApiHost)
+			.setConverter(new SimpleXMLConverter())
 			.setRequestInterceptor(requestInterceptor)
 			.build();
 		
