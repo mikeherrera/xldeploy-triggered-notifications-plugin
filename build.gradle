@@ -5,16 +5,12 @@ repositories {
     mavenCentral()
 }
 
-jar {
-  from("./") {
-    include 'libs/**'
-  }
+jar.doFirst {
+    from configurations.releaseJars.collect { it.isDirectory() ? it : zipTree(it) }
+}
 
-  from {
-    configurations.runtime.collect {
-     it.isDirectory() ? it : zipTree(it)
-    }
-  }
+configurations {
+    releaseJars
 }
 
 dependencies {
@@ -28,5 +24,8 @@ dependencies {
 
     compile 'com.squareup.retrofit:retrofit:latest.integration'
     compile 'com.squareup.retrofit:converter-simplexml:latest.integration'
-    runtime 'com.google.code.gson:gson:2+'
+
+    dependencies {
+      releaseJars 'com.google.code.gson:gson:2+'
+    }
 }
